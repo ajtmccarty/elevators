@@ -9,5 +9,8 @@ and specifying it as such (if your are on a *Nix) system
 
 `export ELEVATOR_SETTINGS=.../src/settings/config_overrides.py` 
 
-Run the Sanic web/websockets app with
-    `python src/controller/sanic_main.py`
+Run the ElevatorController web/websockets app with
+    `python src/controller/controller.py`
+
+Run an instance of the ElevatorInstance websockets app with
+    `python src/elevators/elevator/instance.py`
