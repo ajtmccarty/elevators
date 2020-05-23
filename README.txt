@@ -1,1 +1,0 @@
-An elevator simulator using Sanic and websockets
