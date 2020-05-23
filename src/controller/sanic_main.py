@@ -1,8 +1,5 @@
-import asyncio
-import datetime
 import os
 from pathlib import Path
-import random
 
 from sanic import Sanic, Blueprint
 from sanic.response import json
@@ -23,7 +20,7 @@ async def button(request, floor, direction):
 
 if __name__ == "__main__":
     app = Sanic("Elevators")
-    config_file = Path("src", "controller", "config_base.py")
+    config_file = Path("src", "settings", "config_base.py")
     app.config.from_pyfile(config_file)
     if conf_env_var_name in os.environ:
         app.config.from_envvar(conf_env_var_name)
