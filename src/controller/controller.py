@@ -30,16 +30,24 @@ async def button(request, floor, direction):
     })
 
 
-if __name__ == "__main__":
+def get_controller_app() -> Sanic:
     app = Sanic("ElevatorCtl")
     config_file = Path("src", "settings", "config_base.py")
     app.config.from_pyfile(config_file)
     if conf_env_var_name in os.environ:
         app.config.from_envvar(conf_env_var_name)
     app.blueprint(ev_ctl_web_bp)
+    return app
+
+
+app = get_controller_app()
+
+
+if __name__ == "__main__":
     app.run(
         host=app.config.CONTROLLER_HOST,
         port=app.config.CONTROLLER_PORT,
         debug=app.config.DEBUG,
         protocol=WebSocketProtocol
     )
+
