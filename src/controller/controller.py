@@ -33,6 +33,7 @@ async def button(request, floor, direction):
 
 
 def get_controller_app() -> Sanic:
+    """Get the Sanic app for the controller"""
     app = Sanic("ElevatorCtl")
     config_file = Path("src", "settings", "config_base.py")
     app.config.from_pyfile(config_file)

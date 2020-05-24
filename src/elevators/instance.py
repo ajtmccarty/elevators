@@ -18,6 +18,7 @@ async def button(request, ws):
 
 
 def get_elevator_instance_app() -> Sanic:
+    """Get the Sanic app for an Elevator instance"""
     app = Sanic("ElevatorInstance")
     config_file = Path("src", "settings", "config_base.py")
     app.config.from_pyfile(config_file)
