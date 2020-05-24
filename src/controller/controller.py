@@ -6,6 +6,8 @@ from sanic.response import json
 from sanic.websocket import WebSocketProtocol
 import websockets
 
+__all__ = ["get_controller_app"]
+
 conf_env_var_name = "ELEVATOR_SETTINGS"
 ev_ctl_web_bp = Blueprint("ElevatorWebController")
 

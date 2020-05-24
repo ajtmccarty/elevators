@@ -4,6 +4,8 @@ from pathlib import Path
 from sanic import Sanic, Blueprint
 from sanic.websocket import WebSocketProtocol
 
+__all__ = ["get_elevator_instance_app"]
+
 conf_env_var_name = "ELEVATOR_SETTINGS"
 ev_instance_bp = Blueprint("ElevatorInstance")
 
