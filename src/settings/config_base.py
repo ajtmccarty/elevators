@@ -6,8 +6,8 @@ CONTROLLER_PORT = 8000
 ELEVATOR_PORT = CONTROLLER_PORT + 1
 
 REDIS = dict(
-    USERNAME="default",
+    USERNAME="",
     PASSWORD="",
-    HOST="",
-    PORT=0,
+    HOST="127.0.0.1",
+    PORT=6379,
 )
