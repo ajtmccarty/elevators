@@ -2,7 +2,7 @@ import asyncio
 import json
 import websockets
 
-from src.common.models import Elevator
+from src.common.models import Elevator, ElevatorDirection
 from src.common.utils import get_open_port, get_settings, get_ws_uri
 
 
@@ -51,6 +51,12 @@ class ElevatorProcess:
         except BaseException:
             await self.ws.close()
             raise
+
+    async def simulate_move(self, direction: ElevatorDirection):
+        """Simulate an elevator moving between floors by waiting and then
+        changing the floor value"""
+        await asyncio.sleep(2.0)
+        self._elevator.floor += direction.value
 
     @classmethod
     async def create_and_run(cls):

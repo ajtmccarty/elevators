@@ -1,5 +1,11 @@
+from enum import Enum
 import json
 from typing import Dict
+
+
+class ElevatorDirection(Enum):
+    UP = 1
+    DOWN = -1
 
 
 class ElevatorController:
