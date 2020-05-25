@@ -1,75 +1,75 @@
-import json
+import asyncio
 
 from sanic import Sanic, Blueprint
 from sanic.response import empty, html
 from sanic.websocket import WebSocketProtocol
 
 from src.common.utils import get_settings, get_ws_uri
+from src.common.models import ElevatorController
 from src.controller.html_templates import CONTROLLER_STATUS_HTML
 
 
 __all__ = ["app", "run_controller"]
 
-ev_ctl_web_bp = Blueprint("ev_ctl")
-elevators = []
 
-
-@ev_ctl_web_bp.route("/button/<floor>/<direction>")
 async def button(request, floor, direction):
     print(f"Received: floor: {floor}, direction: {direction}")
     return empty()
 
 
-@ev_ctl_web_bp.websocket("/status/ws", name="ctl_status_ws")
-async def ctl_status_ws(request, ws):
-    """Web sockets route for updating controller status"""
-    await ws.send("Status")
-
-
-@ev_ctl_web_bp.route("/status")
 async def ctl_status_view(request):
     """Very simple HTML page for getting realtime update on controller status"""
     the_app: Sanic = request.app
     uri = get_ws_uri(
         host=the_app.config.CONTROLLER_HOST,
         port=the_app.config.CONTROLLER_PORT,
-        path=the_app.url_for("ctl_status_ws")
+        path=the_app.url_for("ctl_status_ws"),
     )
-    html_data: str = CONTROLLER_STATUS_HTML.format(
-        uri=uri
-    )
+    html_data: str = CONTROLLER_STATUS_HTML.format(uri=uri)
     return html(html_data)
 
 
-@ev_ctl_web_bp.websocket("/elevator", name="elevator_ws")
-async def elevator_connection(request, ws):
+async def handle_status_ws(request, ws):
+    """Send the Elevator Controller's status over the ctl websocket"""
+    while True:
+        print("Sending", end="...")
+        data: dict = ElevatorController.as_dict()
+        # send the __repr__ of the data
+        await ws.send(f"{data!r}")
+        print(f"{data!r}")
+        await asyncio.sleep(3.0)
+
+
+async def handle_elevator_ws(request, ws):
+    """Send incoming Elevator status data to the Elevator Controller"""
     try:
         while True:
-            await receive_elevator_status(ws)
+            print("Waiting to receive", end="...")
+            raw_data: bytes = await ws.recv()
+            print(f"Received {raw_data!r}")
+            ElevatorController.receive_elevator_status(raw_data)
+
     except BaseException:
         await ws.close()
         raise
 
 
-async def receive_elevator_status(ws):
-    global elevators
-    print("Waiting to receive", end="...")
-    raw_data: bytes = await ws.recv()
-    data_dict: dict = json.loads(raw_data.decode("utf8"))
-    print(f"Received {data_dict!r}")
-    host = data_dict["host"]
-    port = data_dict["port"]
-    host_and_port = f"{host}:{port}"
-    if host_and_port not in elevators:
-        elevators.append(host_and_port)
-    print(f"Elevators: {elevators}")
+def build_ctl_bp() -> Blueprint:
+    """Build an Elevator Controller BP"""
+    ev_ctl_bp = Blueprint("ev_ctl")
+    ev_ctl_bp.add_websocket_route(handle_elevator_ws, "/elevator", name="elevator_ws")
+    ev_ctl_bp.add_websocket_route(handle_status_ws, "/status/ws", name="ctl_status_ws")
+    ev_ctl_bp.add_route(ctl_status_view, "/status", name="ctl_status")
+    ev_ctl_bp.add_route(button, "/button/<floor>/<direction>", name="button")
+    return ev_ctl_bp
 
 
 def get_controller_app() -> Sanic:
     """Get the Sanic app for the controller"""
     the_app = Sanic("ElevatorCtl")
     the_app.config = get_settings()
-    the_app.blueprint(ev_ctl_web_bp)
+    ev_ctl_bp = build_ctl_bp()
+    the_app.blueprint(ev_ctl_bp)
     return the_app
 
 
