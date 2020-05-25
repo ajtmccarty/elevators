@@ -21,7 +21,10 @@ def get_settings() -> Config:
 
 def get_ws_uri(host: str, port: Union[str, int], path: Optional[str] = None) -> str:
     """Build a websocket URI from the input parameters"""
-    return f"ws://{host}:{port}/{path}"
+    domain: str = f"ws://{host}:{port}"
+    if path and path[0] == "/":
+        path = path[1:]
+    return f"{domain}/{path}"
 
 
 # TODO: import port selection
