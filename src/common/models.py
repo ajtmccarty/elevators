@@ -1,5 +1,4 @@
 import json
-import random
 from typing import Dict
 
 
@@ -13,24 +12,16 @@ class ElevatorController:
     def receive_elevator_status(cls, raw_data: bytes):
         """Update data about an elevator based in incoming data"""
         data_dict: dict = json.loads(raw_data.decode("utf8"))
-        host = data_dict["host"]
-        port = data_dict["port"]
-        host_and_port = f"{host}:{port}"
-        if host_and_port not in cls.elevators:
-            cls.elevators[host_and_port] = Elevator(host=host, port=port)
+        ev = Elevator.from_dict(data_dict)
+        host_port: str = ev.host_and_port
+        if host_port not in cls.elevators:
+            cls.elevators[host_port] = ev
         print(f"Elevators: {cls.elevators}")
 
     @classmethod
     def as_dict(cls) -> dict:
         """Serialize the controller's status to a dict"""
-        status: dict = {}
-        for i in range(3):
-            status[i] = Elevator(
-                host="cool.org",
-                port=random.randint(8000, 9000),
-                floor=random.randint(0, 10),
-            ).as_dict()
-        return status
+        return {k: v.as_dict() for k, v in cls.elevators.items()}
 
 
 class Elevator:
@@ -41,6 +32,15 @@ class Elevator:
         self.port = port
         self.floor = floor
 
+    @staticmethod
+    def from_dict(data_dict: dict) -> "Elevator":
+        """Create an Elevator from a serialized dict"""
+        return Elevator(**data_dict)
+
     def as_dict(self) -> dict:
         """Serialize to a dictionary"""
         return {"host": self.host, "port": self.port, "floor": self.floor}
+
+    @property
+    def host_and_port(self):
+        return f"{self.host}:{self.port}"
