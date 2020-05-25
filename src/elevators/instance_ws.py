@@ -12,15 +12,12 @@ __all__ = ["run_elevator"]
 class Elevator:
     """Elevator class to handle tracking instance variables and the websocket connection"""
 
-    # number of seconds to wait before sending status
-    status_min_wait: int = 3
-
-    def __init__(self, ws: websockets.WebSocketClientProtocol, host: str, port: int):
+    def __init__(self, ws: websockets.WebSocketClientProtocol, host: str, port: int, min_status_wait: float):
         self.ws = ws  # websocket connection
         self.host = host
         self.port = port
-        self.floor = None  # initial floor
-        self.last_status = 0
+        self.floor = None
+        self.min_status_wait: float = min_status_wait  # number of seconds to wait between sending statuses
 
     def as_dict(self) -> dict:
         """Serialize the instance as a dictionary"""
@@ -28,16 +25,19 @@ class Elevator:
 
     async def send_status(self):
         """Send status message roughly every status_min_wait settings"""
-        if time.time() - self.last_status > self.status_min_wait:
-            msg_dict: dict = self.as_dict()
-            msg_bytes = json.dumps(msg_dict).encode("utf-8")
-            print(f"Sending status {msg_dict!r}")
-            await self.ws.send(msg_bytes)
-            self.last_status = time.time()
+        msg_dict: dict = self.as_dict()
+        msg_bytes = json.dumps(msg_dict).encode("utf-8")
+        print(f"Sending status {msg_dict!r}")
+        await self.ws.send(msg_bytes)
 
-    async def receive_instruction(self):
-        raw_data = await self.ws.recv()
-        # TODO: handle instruction
+    async def receive_instruction(self) -> bool:
+        """Wait to receive an instruction"""
+        try:
+            raw_data: bytes = await asyncio.wait_for(self.ws.recv(), timeout=self.min_status_wait)
+            # TODO: handle instruction
+            return True
+        except asyncio.TimeoutError:
+            return False
 
     async def run(self):
         """Handle sending and receiving over the websocket until stopped"""
@@ -61,7 +61,7 @@ class Elevator:
         # make the connection
         ws = await websockets.connect(ws_uri)
         # make the instance
-        ev = cls(ws=ws, host=config.ELEVATOR_HOST, port=get_open_port())
+        ev = cls(ws=ws, host=config.ELEVATOR_HOST, port=get_open_port(), min_status_wait=config.MIN_STATUS_WAIT)
         # run the instance
         await ev.run()
 
