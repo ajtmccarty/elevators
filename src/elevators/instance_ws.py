@@ -1,6 +1,5 @@
 import asyncio
 import json
-import time
 import websockets
 
 from src.common.utils import get_open_port, get_settings, get_ws_uri
