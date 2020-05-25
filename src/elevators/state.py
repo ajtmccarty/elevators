@@ -1,13 +1,13 @@
 """Functions for managing setting/getting elevator state on Redis"""
 import aredis
 
-from src.elevators.instance import get_elevator_instance_app
+from src.common.utils import get_settings
 
 __all__ = [
     "get_elevator_floor",
     "pop_from_elevator_queue",
     "push_to_elevator_queue",
-    "set_elevator_floor"
+    "set_elevator_floor",
 ]
 
 
@@ -27,8 +27,8 @@ class RedisClient:
     def __get_redis_client(*args, **kwargs) -> aredis.StrictRedis:
         """Initialize the Redis app using the settings defined
         on the elevator instance app"""
-        app = get_elevator_instance_app()
-        redis_settings: dict = app.config.REDIS
+        config = get_settings()
+        redis_settings: dict = config.REDIS
         client = aredis.StrictRedis(
             host=redis_settings["HOST"],
             port=redis_settings["PORT"],
@@ -36,6 +36,7 @@ class RedisClient:
             username=redis_settings.get("USERNAME"),
         )
         return client
+
 
 #####################
 # FLOOR GET AND SET #
@@ -59,6 +60,7 @@ async def set_elevator_floor(ev_id: int, floor: int) -> str:
     client = RedisClient()
     ev_key = get_ev_floor_key(ev_id)
     return await client.set(ev_key, floor).decode()
+
 
 ######################
 # QUEUE PUSH AND POP #
