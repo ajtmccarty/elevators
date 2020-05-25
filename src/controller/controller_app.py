@@ -1,15 +1,16 @@
 import json
 
 from sanic import Sanic, Blueprint
-from sanic.response import empty
+from sanic.response import empty, html
 from sanic.websocket import WebSocketProtocol
 
-from src.common.utils import get_settings
+from src.common.utils import get_settings, get_ws_uri
+from src.controller.html_templates import CONTROLLER_STATUS_HTML
 
 
 __all__ = ["app", "run_controller"]
 
-ev_ctl_web_bp = Blueprint("ElevatorWebController")
+ev_ctl_web_bp = Blueprint("ev_ctl")
 elevators = []
 
 
@@ -19,7 +20,28 @@ async def button(request, floor, direction):
     return empty()
 
 
-@ev_ctl_web_bp.websocket("/elevator")
+@ev_ctl_web_bp.websocket("/status/ws", name="ctl_status_ws")
+async def ctl_status_ws(request, ws):
+    """Web sockets route for updating controller status"""
+    await ws.send("Status")
+
+
+@ev_ctl_web_bp.route("/status")
+async def ctl_status_view(request):
+    """Very simple HTML page for getting realtime update on controller status"""
+    the_app: Sanic = request.app
+    uri = get_ws_uri(
+        host=the_app.config.CONTROLLER_HOST,
+        port=the_app.config.CONTROLLER_PORT,
+        path=the_app.url_for("ctl_status_ws")
+    )
+    html_data: str = CONTROLLER_STATUS_HTML.format(
+        uri=uri
+    )
+    return html(html_data)
+
+
+@ev_ctl_web_bp.websocket("/elevator", name="elevator_ws")
 async def elevator_connection(request, ws):
     try:
         while True:
