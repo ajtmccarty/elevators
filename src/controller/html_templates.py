@@ -1,3 +1,4 @@
+# Taken from websocket Python package browser example
 CONTROLLER_STATUS_HTML = """<!DOCTYPE html>
 <html>
     <head>
