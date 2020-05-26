@@ -11,4 +11,6 @@ ELEVATOR_HOST: str = CONTROLLER_HOST
 MIN_STATUS_WAIT: float = 3.0
 
 # Redis
-REDIS: dict = dict(USERNAME="", PASSWORD="", HOST="127.0.0.1", PORT=6379,)
+REDIS: dict = dict(
+    USERNAME="", PASSWORD="", HOST="127.0.0.1", PORT=6379,
+)

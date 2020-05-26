@@ -4,8 +4,8 @@ from sanic import Sanic, Blueprint
 from sanic.response import empty, html
 from sanic.websocket import WebSocketProtocol
 
-from src.common.utils import get_settings, get_ws_uri
 from src.common.models import ElevatorController
+from src.common.utils import get_settings, get_ws_uri
 from src.controller.html_templates import CONTROLLER_STATUS_HTML
 
 
