@@ -1,7 +1,7 @@
 import asyncio
-import json
 import websockets
 
+from src.common.interfaces import ElevatorStatus
 from src.common.models import Elevator, ElevatorDirection
 from src.common.utils import get_open_port, get_settings, get_ws_uri
 
@@ -24,10 +24,9 @@ class ElevatorProcess:
         self._elevator: Elevator = Elevator(host=host, port=port)
 
     async def send_status(self):
-        """Send status message roughly every status_min_wait settings"""
-        msg_dict: dict = self._elevator.as_dict()
-        msg_bytes = json.dumps(msg_dict).encode("utf-8")
-        print(f"Sending status {msg_dict!r}")
+        """Send status message for this elevator"""
+        msg_bytes: bytes = ElevatorStatus.serialize(self._elevator)
+        print(f"Sending status {msg_bytes}")
         await self.ws.send(msg_bytes)
 
     async def receive_instruction(self) -> bool:
@@ -36,7 +35,8 @@ class ElevatorProcess:
             raw_data: bytes = await asyncio.wait_for(
                 self.ws.recv(), timeout=self.min_status_wait
             )
-            # TODO: handle instruction
+            data: str = raw_data.decode("utf8")
+
             return True
         except asyncio.TimeoutError:
             return False

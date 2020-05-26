@@ -22,10 +22,7 @@ class Message:
         assert cls.msg_type
         assert hasattr(the_object, "as_dict")
         obj_data: dict = the_object.as_dict()
-        full_msg: dict = {
-            "payload": obj_data,
-            "msg_type": cls.msg_type
-        }
+        full_msg: dict = {"payload": obj_data, "msg_type": cls.msg_type}
         return json.dumps(full_msg).encode("utf8")
 
     @classmethod
@@ -45,6 +42,7 @@ class ElevatorStatus(Message):
     @classmethod
     def deserialize(cls, payload: dict) -> "Elevator":
         from src.common.models import Elevator
+
         return Elevator.from_dict(payload)
 
 
