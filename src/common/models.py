@@ -1,6 +1,7 @@
 from enum import Enum
-import json
 from typing import Dict
+
+from src.common.interfaces import Message
 
 
 class ElevatorDirection(Enum):
@@ -17,8 +18,7 @@ class ElevatorController:
     @classmethod
     def receive_elevator_status(cls, raw_data: bytes):
         """Update data about an elevator based in incoming data"""
-        data_dict: dict = json.loads(raw_data.decode("utf8"))
-        ev = Elevator.from_dict(data_dict)
+        ev = Message.deserialize(raw_data)
         host_port: str = ev.host_and_port
         if host_port not in cls.elevators:
             cls.elevators[host_port] = ev
@@ -38,10 +38,10 @@ class Elevator:
         self.port = port
         self.floor = floor
 
-    @staticmethod
-    def from_dict(data_dict: dict) -> "Elevator":
+    @classmethod
+    def from_dict(cls, data_dict: dict) -> "Elevator":
         """Create an Elevator from a serialized dict"""
-        return Elevator(**data_dict)
+        return cls(**data_dict)
 
     def as_dict(self) -> dict:
         """Serialize to a dictionary"""
@@ -50,3 +50,6 @@ class Elevator:
     @property
     def host_and_port(self):
         return f"{self.host}:{self.port}"
+
+    def add_dest(self, floor: int):
+        pass
