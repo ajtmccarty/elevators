@@ -4,7 +4,7 @@ from sanic import Sanic, Blueprint
 from sanic.response import empty, html
 from sanic.websocket import WebSocketProtocol
 
-from src.common.models import ElevatorController
+from src.common.models import ElevatorController, AddFloorToQueue
 from src.common.utils import get_settings, get_ws_uri
 from src.controller.html_templates import CONTROLLER_STATUS_HTML
 
@@ -14,6 +14,12 @@ __all__ = ["app", "run_controller"]
 
 async def button(request, floor, direction):
     print(f"Received: floor: {floor}, direction: {direction}")
+    ev = ElevatorController.get_ev(host_and_port=request.host)
+    instr = AddFloorToQueue(
+        host_and_port=request.host,
+        floor=floor,
+    )
+    await
     return empty()
 
 
@@ -47,7 +53,7 @@ async def handle_elevator_ws(request, ws):
             print("Waiting to receive", end="...")
             raw_data: bytes = await ws.recv()
             print(f"Received {raw_data!r}")
-            ElevatorController.receive_elevator_status(raw_data)
+            ElevatorController.receive_elevator_msg(raw_data)
 
     except BaseException:
         await ws.close()

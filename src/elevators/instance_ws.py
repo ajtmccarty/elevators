@@ -1,8 +1,8 @@
 import asyncio
 import websockets
 
-from src.common.interfaces import ElevatorStatus
-from src.common.models import Elevator, ElevatorDirection
+from src.common.interfaces import ElevatorAddFloor, ElevatorStatus
+from src.common.models import Elevator, ElevatorDirection, ElevatorInstruction
 from src.common.utils import get_open_port, get_settings, get_ws_uri
 
 
@@ -27,6 +27,12 @@ class ElevatorProcess:
         """Send status message for this elevator"""
         msg_bytes: bytes = ElevatorStatus.serialize(self._elevator)
         print(f"Sending status {msg_bytes}")
+        await self.ws.send(msg_bytes)
+
+    async def send_instruction(self, instr: ElevatorInstruction):
+        """Send a command to this elevator"""
+        msg_bytes: bytes = ElevatorAddFloor.serialize(instr)
+        print(f"Sending command {msg_bytes}")
         await self.ws.send(msg_bytes)
 
     async def receive_instruction(self) -> bool:

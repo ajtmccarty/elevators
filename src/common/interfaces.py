@@ -26,12 +26,16 @@ class Message:
         return json.dumps(full_msg).encode("utf8")
 
     @classmethod
-    def deserialize(cls, raw_data: bytes) -> Any:
+    def deserialize_raw(cls, raw_data: bytes) -> "Message":
         msg_dict: dict = json.loads(raw_data.decode("utf8"))
         assert "payload" in msg_dict
         assert "msg_type" in msg_dict
         msg_type_class = cls.msg_types[msg_dict["msg_type"]]
         return msg_type_class.deserialize(msg_dict["payload"])
+
+    @classmethod
+    def deserialize(cls, payload: dict) -> "Message":
+        return NotImplemented
 
 
 class ElevatorStatus(Message):
@@ -39,11 +43,33 @@ class ElevatorStatus(Message):
 
     msg_type = "ev_status"
 
+    def __init__(self, elevator=None):
+        self.elevator = elevator
+
     @classmethod
-    def deserialize(cls, payload: dict) -> "Elevator":
+    def deserialize(cls, payload: dict) -> "ElevatorStatus":
         from src.common.models import Elevator
 
-        return Elevator.from_dict(payload)
+        ev = Elevator.from_dict(payload)
+        return ElevatorStatus(ev)
+
+
+class ElevatorAddFloor(Message):
+
+    msg_type = "ev_command_add_flr"
+
+    def __init__(self, instruction=None):
+        self.instruction = instruction
+
+    @classmethod
+    def deserialize(cls, payload: dict) -> "ElevatorAddFloor":
+        from src.common.models import AddFloorToQueue
+
+        instr: AddFloorToQueue = AddFloorToQueue.from_dict(
+            payload
+        )
+        return cls(instr)
 
 
 Message.register_msg_type(ElevatorStatus())
+Message.register_msg_type(ElevatorAddFloor())
