@@ -12,8 +12,13 @@ from src.controller.html_templates import CONTROLLER_STATUS_HTML
 __all__ = ["app", "run_controller"]
 
 
-async def button(request, floor, direction):
-    print(f"Received: floor: {floor}, direction: {direction}")
+async def exterior_button(request, floor, direction):
+    print(f"Exterior button: floor: {floor}, direction: {direction}")
+    return empty()
+
+
+async def interior_button(request, elevator_id, floor):
+    print(f"Interior button: elevator_id: {elevator_id}, floor: {floor}")
     return empty()
 
 
@@ -60,7 +65,8 @@ def build_ctl_bp() -> Blueprint:
     ev_ctl_bp.add_websocket_route(handle_elevator_ws, "/elevator", name="elevator_ws")
     ev_ctl_bp.add_websocket_route(handle_status_ws, "/status/ws", name="ctl_status_ws")
     ev_ctl_bp.add_route(ctl_status_view, "/status", name="ctl_status")
-    ev_ctl_bp.add_route(button, "/button/<floor>/<direction>", name="button")
+    ev_ctl_bp.add_route(exterior_button, "/button/<floor>/<direction>", name="exterior_button")
+    ev_ctl_bp.add_route(interior_button, "/button/<elevator_id>/<floor>", name="interior_button")
     return ev_ctl_bp
 
 
