@@ -143,5 +143,8 @@ cython_debug/
 # PyCharm
 .idea/
 
+# VS Code
+.vscode/
+
 # Settings
 config_overrides.py
